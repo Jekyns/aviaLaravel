@@ -21,12 +21,14 @@ class Flight extends Model
         'Number'
     ];
 
-    public static function uploadCsv () {
+    public static function uploadCsv()
+    {
         $flightCsv = explode(PHP_EOL, Storage::get('flights/flight.csv'));
         array_shift($flightCsv);
 
         $flights = [];
         $wrongRows = [];
+        $wrongDetails = [];
         foreach ($flightCsv as $i => $row) {
             if (!$row) {
                 continue;
@@ -42,11 +44,23 @@ class Flight extends Model
                 '5' => 'required|date',
                 '6' => 'required|date_format:Hi',
                 '7' => 'required|string',
+            ], [
+                '0' => 'Wrong Id',
+                '1' => 'Wrong Origin',
+                '2' => 'Wrong Destination',
+                '3' => 'Wrong DepartureDate',
+                '4' => 'Wrong DepartureTime',
+                '5' => 'Wrong ArrivalDate',
+                '6' => 'Wrong ArrivalTime',
+                '7' => 'Wrong Number',
             ]);
+
             if ($validator->fails()) {
-                $wrongRows[] = $i;
+                $validateErrors = $validator->errors();
+                $wrongRows[] = $i + 1;
+                $wrongDetails[] = [$i + 1 => array_values($validateErrors->messages())];
                 Log::info('ERROR at ' . $i . ' row with flight id: ' . $flight[0]);
-                Log::info($validator->errors());
+                Log::info($validateErrors);
                 continue;
             }
 
@@ -64,6 +78,6 @@ class Flight extends Model
         }
         $res = DB::table('flights')->upsert($flights, 'id');
 
-        return ['result' => !!$res, 'wrongRows' => $wrongRows];
+        return ['result' => !!$res, 'wrongRows' => $wrongRows, 'wrongDetails' => $wrongDetails];
     }
 }

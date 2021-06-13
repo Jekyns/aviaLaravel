@@ -63,7 +63,8 @@ class FlightsController extends Controller
         return json_encode([
             'error' => false,
             'message' => $uploads['result'] ? 'Flights loaded' : 'There is nothing to add or update',
-            'wrongRows' => $uploads['wrongRows']
+            'wrongRows' => $uploads['wrongRows'],
+            'wrongDetails' => $uploads['wrongDetails']
         ]);
     }
 }
