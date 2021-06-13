@@ -24,7 +24,7 @@ class Flight extends Model
     public static function uploadCsv()
     {
         $flightCsv = explode(PHP_EOL, Storage::get('flights/flight.csv'));
-        array_shift($flightCsv);
+        $csvHead = explode(',', array_shift($flightCsv));
 
         $flights = [];
         $wrongRows = [];
@@ -33,47 +33,43 @@ class Flight extends Model
             if (!$row) {
                 continue;
             }
-            $flight = explode(',', $row);
+
+            $flightColumns = explode(',', $row);
+            $flight = array_combine(
+                array_slice($csvHead, 0, count($flightColumns)),
+                $flightColumns
+            );
 
             $validator = Validator::make($flight, [
-                '0' => 'required|integer',
-                '1' => 'required|string',
-                '2' => 'required|string',
-                '3' => 'required|date',
-                '4' => 'required|date_format:Hi',
-                '5' => 'required|date',
-                '6' => 'required|date_format:Hi',
-                '7' => 'required|string',
-            ], [
-                '0' => 'Wrong Id',
-                '1' => 'Wrong Origin',
-                '2' => 'Wrong Destination',
-                '3' => 'Wrong DepartureDate',
-                '4' => 'Wrong DepartureTime',
-                '5' => 'Wrong ArrivalDate',
-                '6' => 'Wrong ArrivalTime',
-                '7' => 'Wrong Number',
+                'Id' => 'required|integer',
+                'Origin' => 'required|string',
+                'Destination' => 'required|string',
+                'DepartureDate' => 'required|date',
+                'DepartureTime' => 'required|date_format:Hi',
+                'ArrivalDate' => 'required|date',
+                'ArrivalTime' => 'required|date_format:Hi',
+                'Number' => 'required|string',
             ]);
 
             if ($validator->fails()) {
                 $validateErrors = $validator->errors();
                 $wrongRows[] = $i + 1;
                 $wrongDetails[] = [$i + 1 => array_values($validateErrors->messages())];
-                Log::info('ERROR at ' . $i . ' row with flight id: ' . $flight[0]);
+                Log::info('ERROR at ' . $i . ' row');
                 Log::info($validateErrors);
                 continue;
             }
 
-            $DepartureTime = $flight[4] . '00';
-            $ArrivalTime = $flight[6] . '00';
+            $DepartureTime = $flight['DepartureTime'] . '00';
+            $ArrivalTime = $flight['ArrivalTime'] . '00';
 
             $flights[] = [
-                'id' => $flight[0],
-                'Origin' => $flight[1],
-                'Destination' => $flight[2],
-                'DepartureDate' => $flight[3] . $DepartureTime,
-                'ArrivalDate' => $flight[5] . $ArrivalTime,
-                'Number' => $flight[7],
+                'id' => $flight['Id'],
+                'Origin' => $flight['Origin'],
+                'Destination' => $flight['Destination'],
+                'DepartureDate' => $flight['DepartureDate'] . $DepartureTime,
+                'ArrivalDate' => $flight['ArrivalDate'] . $ArrivalTime,
+                'Number' => $flight['Number'],
             ];
         }
         $res = DB::table('flights')->upsert($flights, 'id');
