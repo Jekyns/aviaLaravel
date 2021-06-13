@@ -15,4 +15,6 @@ use App\Http\Controllers\FlightsController;
 |
 */
 
-Route::post('/upload/flights', [FlightsController::class, 'upload'])->name('flights.upload');
+Route::post('/flights', [FlightsController::class, 'upload'])->name('flights.upload');
+
+Route::get('/flights/{id}', [FlightsController::class, 'getOne'])->name('flights.getOne');

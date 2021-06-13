@@ -17,5 +17,3 @@ use App\Http\Controllers\FlightsController;
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::get('/flights/{id}', [FlightsController::class, 'getOne'])->name('flights.getOne');
