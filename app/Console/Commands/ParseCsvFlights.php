@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class ParseCsvFlights extends Command
 {
@@ -47,23 +49,38 @@ class ParseCsvFlights extends Command
             if (!$row) {
                 break;
             }
-            $filght = explode(',', $row);
+            $flight = explode(',', $row);
 
-            $DepartureTime = $filght[4] . '00';
-            $ArrivalTime = $filght[6] . '00';
+            $validator = Validator::make($flight, [
+                '0' => 'required|integer',
+                '1' => 'required|string',
+                '2' => 'required|string',
+                '3' => 'required|date',
+                '4' => 'required|date_format:Hi',
+                '5' => 'required|date',
+                '6' => 'required|date_format:Hi',
+                '7' => 'required|string',
+            ]);
+            if ($validator->fails()) {
+                Log::info('ERROR with flight id: ' . $flight[0]);
+                Log::info($validator->errors());
+                continue;
+            }
+
+            $DepartureTime = $flight[4] . '00';
+            $ArrivalTime = $flight[6] . '00';
 
             $flights[] = [
-                'id' => $filght[0],
-                'Origin' => $filght[1],
-                'Destination' => $filght[2],
-                'DepartureDate' => $filght[3],
-                'DepartureTime' => $DepartureTime,
-                'ArrivalDate' => $filght[5],
-                'ArrivalTime' => $ArrivalTime,
-                'Number' => $filght[7],
+                'id' => $flight[0],
+                'Origin' => $flight[1],
+                'Destination' => $flight[2],
+                'DepartureDate' => $flight[3] . $DepartureTime,
+                'ArrivalDate' => $flight[5] . $ArrivalTime,
+                'Number' => $flight[7],
             ];
         }
-        DB::table('flights')->upsert($flights, 'id');
-        return true;
+        $res = DB::table('flights')->upsert($flights, 'id');
+
+        return !!$res;
     }
 }

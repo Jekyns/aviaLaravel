@@ -13,9 +13,7 @@ class Flight extends Model
         'Origin',
         'Destination',
         'DepartureDate',
-        'DepartureTime',
         'ArrivalDate',
-        'ArrivalTime',
         'Number'
     ];
 }

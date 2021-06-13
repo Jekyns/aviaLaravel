@@ -29,7 +29,11 @@ class FlightsController extends Controller
         if (!$flight) {
             return json_encode(['error' => true, 'message' => 'Flight does not exist']);
         }
-        return json_encode(['Number' => $flight->Number, 'DepartureDate' => $flight->DepartureDate, 'DepartureTime' => $flight->DepartureTime, 'ArrivalDate' => $flight->ArrivalDate, 'ArrivalTime' => $flight->ArrivalTime]);
+        return json_encode([
+            'Number' => $flight->Number,
+            'DepartureDate' => $flight->DepartureDate,
+            'ArrivalDate' => $flight->ArrivalDate,
+        ]);
     }
 
     /**
@@ -41,11 +45,13 @@ class FlightsController extends Controller
     public function upload(Request $request)
     {
         $flightCsv = $request->file('flight_csv');
-        // if($flightCsv->extension() !== 'csv'){
-        //     return 'Wrong file extension';
-        // }
+        $fileName = explode('.', $flightCsv->getClientOriginalName());
+        $extension = array_pop($fileName);
+        if($extension !== 'csv'){
+            return json_encode(['error' => true, 'message' => 'Wrong file extension']);
+        }
         Storage::putFileAs('flights', new File($flightCsv), 'flight.csv');
-        Artisan::call('parse:flights');
-        return json_encode(['error' => false, 'message' => 'Flights loaded']);
+        $uploads = Artisan::call('parse:flights');
+        return json_encode(['error' => false, 'message' => $uploads ? 'Flights loaded' : 'There is nothing to add or update']);
     }
 }
