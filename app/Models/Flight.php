@@ -24,7 +24,7 @@ class Flight extends Model
     public static function uploadCsv()
     {
         $flightCsv = explode(PHP_EOL, Storage::get('flights/flight.csv'));
-        $csvHead = explode(',', array_shift($flightCsv));
+        $csvHead = explode(',', array_shift($flightCsv)); // Разбиваем заголовок таблицы
 
         $flights = [];
         $wrongRows = [];
@@ -38,7 +38,7 @@ class Flight extends Model
             $flight = array_combine(
                 array_slice($csvHead, 0, count($flightColumns)),
                 $flightColumns
-            );
+            ); // Формируем обьект где ключи это имена колонок а значение берем из этой строки
 
             $validator = Validator::make($flight, [
                 'Id' => 'required|integer',
@@ -60,7 +60,7 @@ class Flight extends Model
                 continue;
             }
 
-            $DepartureTime = $flight['DepartureTime'] . '00';
+            $DepartureTime = $flight['DepartureTime'] . '00'; // Добавляем секунды
             $ArrivalTime = $flight['ArrivalTime'] . '00';
 
             $flights[] = [
