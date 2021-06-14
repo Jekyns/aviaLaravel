@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+ini_set('max_execution_time', 300);
 
 class Flight extends Model
 {
@@ -72,7 +73,11 @@ class Flight extends Model
                 'Number' => $flight['Number'],
             ];
         }
-        $res = DB::table('flights')->upsert($flights, 'id');
+        $chunkedFlights = array_chunk($flights, 1000);
+        $res = 0;
+        foreach($chunkedFlights as $flightsChunk){
+            $res += DB::table('flights')->upsert($flightsChunk, 'id');
+        };
 
         return ['result' => !!$res, 'wrongRows' => $wrongRows, 'wrongDetails' => $wrongDetails];
     }
