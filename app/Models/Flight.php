@@ -25,7 +25,9 @@ class Flight extends Model
     public static function uploadCsv()
     {
         $flightCsv = explode(PHP_EOL, Storage::get('flights/flight.csv'));
-        $csvHead = explode(',', array_shift($flightCsv)); // Разбиваем заголовок таблицы
+        $headStr = strtolower(array_shift($flightCsv)); // Приводим весь заголовок к строке без заглавных букв 
+        $headStr = str_replace(" ", '', $headStr); // Удаляем все пробелы
+        $csvHead = explode(',', $headStr); // Разбиваем заголовок таблицы
 
         $flights = [];
         $wrongRows = [];
@@ -42,14 +44,14 @@ class Flight extends Model
             ); // Формируем обьект где ключи это имена колонок а значение берем из этой строки
 
             $validator = Validator::make($flight, [
-                'Id' => 'required|integer',
-                'Origin' => 'required|string',
-                'Destination' => 'required|string',
-                'DepartureDate' => 'required|date',
-                'DepartureTime' => 'required|date_format:Hi',
-                'ArrivalDate' => 'required|date',
-                'ArrivalTime' => 'required|date_format:Hi',
-                'Number' => 'required|string',
+                'id' => 'required|integer',
+                'origin' => 'required|string',
+                'destination' => 'required|string',
+                'departuredate' => 'required|date',
+                'departuretime' => 'required|date_format:Hi',
+                'arrivaldate' => 'required|date',
+                'arrivaltime' => 'required|date_format:Hi',
+                'number' => 'required|string',
             ]);
 
             if ($validator->fails()) {
@@ -61,16 +63,16 @@ class Flight extends Model
                 continue;
             }
 
-            $DepartureTime = $flight['DepartureTime'] . '00'; // Добавляем секунды
-            $ArrivalTime = $flight['ArrivalTime'] . '00';
+            $DepartureTime = $flight['departuretime'] . '00'; // Добавляем секунды
+            $ArrivalTime = $flight['arrivaltime'] . '00';
 
             $flights[] = [
-                'id' => $flight['Id'],
-                'Origin' => $flight['Origin'],
-                'Destination' => $flight['Destination'],
-                'DepartureDate' => $flight['DepartureDate'] . $DepartureTime,
-                'ArrivalDate' => $flight['ArrivalDate'] . $ArrivalTime,
-                'Number' => $flight['Number'],
+                'id' => $flight['id'],
+                'Origin' => $flight['origin'],
+                'Destination' => $flight['destination'],
+                'DepartureDate' => $flight['departuredate'] . $DepartureTime,
+                'ArrivalDate' => $flight['arrivaldate'] . $ArrivalTime,
+                'Number' => $flight['number'],
             ];
         }
         $chunkedFlights = array_chunk($flights, 1000);
